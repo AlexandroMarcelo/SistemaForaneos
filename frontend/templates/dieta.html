@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <title>Dieta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+        .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+    </style>
+    
+    <body class="w3-light-grey" style="max-width:1600px">
+        {% include 'includes/_navbar.html' %}
+        <!-- Overlay effect when opening sidebar on small screens -->
+        <div class="w3-overlay w3-hide-large w3-animate-opacity w3-top w3-container" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+           <div class="w3-row-padding w3-padding-64 w3-container"> 
+                {% if tiene_comidas %}
+                <h1 >Tu Dieta:</h1>
+                    <div>
+                        {% for dieta in nombre_comidas_array %}
+                            <div class="w3-third w3-container w3-margin-bottom">
+                                <h3>{{nombre_comidas_array[loop.index0]}}</h3>
+                                <div class="w3-container w3-white">
+                                    <p>Ingredientes: {{ingredientes_array[loop.index0]}}</p>
+                                    <p>Descripción: {{descripcion_array[loop.index0]}}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <h1 >Aún no tienes una dieta que seguir, pregunta a tu asesor.</h1>
+                {% endif %}
+            </div>
+        </div>
+        <script>
+        // Script to open and close sidebar
+        function w3_open() {
+            document.getElementById("mySidebar").style.display = "block";
+            document.getElementById("myOverlay").style.display = "block";
+        }
+        
+        function w3_close() {
+            document.getElementById("mySidebar").style.display = "none";
+            document.getElementById("myOverlay").style.display = "none";
+        }
+        </script>
+
+    </body>
+</html>
