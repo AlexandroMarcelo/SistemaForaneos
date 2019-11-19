@@ -37,42 +37,6 @@ class Gimnasio(object):
 
         return usuario
 
-    def createUser(self, user):
-        """
-        Crear un nuevo usuario
-        """
-        result = self.collection.insert_one(user)
-
-        return result
-
-    def deleteUser(self, email):
-        """
-        Eliminar un usuario
-        """
-        result = self.collection.delete_one({'email': email})
-
-        if result.deleted_count == 1:
-            return True
-        else:  
-            return False
-
-
-    def updateUser(self, email, new_data):
-        """
-        Actualizar un ususario
-        """
-        #result = self.collection.update_one({'email': email}, {"$set": new_data})
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.instructores
-        collection.update_one({
-            'ID_Instructor': 'I00001'
-        },{
-            '$set': {
-                'ID_Instructor': 'I000001'
-            }
-        }, upsert=False)
-
     def getNumberOfUsers(self):
         """
         Actualizar un ususario
@@ -113,61 +77,6 @@ class Gimnasio(object):
             return clase
         else:
             return False
-
-    def createClass(self, clase):
-        """
-        Crear una clase nueva
-        """
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.clases
-        
-        clase = collection.insert_one(clase)
-
-        return clase
-
-    def insertClassInstructorSchedule(self, id_clase, id_instructor, horarios):
-        """
-        Insertar en una clase existente al instructor y el horario del mismo
-        """
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.clases
-
-        result = collection.update({'_id':id_clase}, {'$push': {'Instructores': id_instructor}})
-        result = collection.update({'_id':id_clase}, {'$push': {'Horarios': horarios}})
-
-        return result
-
-    def insertClassSchedule(self, id_clase, horarios):
-        """
-        Insertar en una clase existente el horario del instructor
-        """
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.clases
-
-        result = collection.update({'_id':id_clase}, {'$push': {'Horarios': horarios}})
-
-        return result
-
-    def updateUserClass(self, new_class, correo_usuario):
-        '''
-        Modificar clases de un usuario
-        '''
-        #user = self.findOne(correo_usuario)
-        actualizado = self.collection.update_one({'email': correo_usuario}, {'$push' : {'Clases': new_class}}, upsert = True)
-        
-        return actualizado
-
-    def addUserClass(self, new_class, correo_usuario):
-        '''
-        Agrega clases a un usuario
-        '''
-        #user = self.findOne(correo_usuario)
-        actualizado = self.collection.update_one({'email': correo_usuario, "Clases.Horario" : -1}, {'$set' : {'Clases.$': new_class}}, upsert = True)
-        
-        return actualizado
 
     def deleteClass(self, id_clase):
         '''
@@ -232,36 +141,6 @@ class Gimnasio(object):
         
         return dietas
 
-    def createFood(self, diet):
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.dietas
-
-        cursor = collection.insert_one(diet)
-
-        print(cursor)
-        print(cursor.inserted_id)
-        if cursor.inserted_id is not None:
-            return True
-        else:
-            return False
-    
-    def deleteFood(self, id_comida):
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.dietas
-
-        #cursor = collection.delete_one({'Id_comida': id_comida})
-
-        cursor = collection.update_one({'Id_comida': id_comida}, {'$set' : {'Borrada':1}}, upsert = True)
-
-        print(cursor.matched_count)
-
-        if cursor.matched_count == 1:
-            return True
-        else:  
-            return False
-
 #INSTRUCTORES
     def findInstructors(self):
         '''
@@ -308,23 +187,7 @@ class Gimnasio(object):
         
         return cursor
 
-    def createInstructor(self, instructor_data):
-        '''
-        Crear un instructor
-        '''
-
-        client = MongoClient(config.MONGO_URI)
-        db = client.gimnasio
-        collection = db.instructores
-
-        cursor = collection.insert_one(instructor_data)
-        
-        if cursor.inserted_id is not None:
-            return True
-        else:
-            return False
-
-
+    
     def getNumberOfInstructors(self):
         '''
         Obtener el numero de instructores que hay en la base de datos

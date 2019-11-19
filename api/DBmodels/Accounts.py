@@ -24,26 +24,3 @@ class Sessions(object):
             return False 
         else: 
             return password
-
-    def signUp(self,user,password):
-        """ Registra usuario y password """
-
-        if self.instance.get(user) is None:
-            signup = self.instance.set(user,password)
-            return True 
-        else: #Duplicado
-            return False
-
-    def add(self, id):
-        """ Crea una nueva sesion en Redis """
-
-        result = self.instance.set(id, 1)
-
-        return result
-
-    def deleteOne(self, email):
-        ''' Borrar al eliminar un usuario'''
-
-        result = self.instance.delete(email)
-
-        return result
