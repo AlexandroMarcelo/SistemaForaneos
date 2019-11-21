@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging  #render_template: para recargar la pagina
+from flask import Flask,  jsonify, render_template, flash, redirect, url_for, session, request, logging  #render_template: para recargar la pagina
 
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
@@ -13,11 +13,13 @@ sys.path.insert(0, os.path.abspath(".."))
 
 #from api.DBmodels import Gimnasio
 from api import GymAPI
+from api import GradesAPI
 
 app = Flask(__name__)
 app.secret_key='12345'
 
 api = GymAPI.GymAPI()
+apiGrades = GradesAPI.GradesAPI()
 nombre_usuario = ""
 correo_usuario = "daniel@gmail.com" #BORRAR
 logged_in_user = True
@@ -26,6 +28,8 @@ logged_in_instructor = False
 #Home para todos, pero de manera que cada quien pueda ver lo suyo
 @app.route('/')
 def root():
+    #return jsonify({'test': api.get_all_users()})
+    #return jsonify({'user': apiGrades.get_user_grades('A01021383')})
     return redirect(url_for('login'))
 
 #Home para todos, pero de manera que cada quien pueda ver lo suyo
@@ -117,17 +121,33 @@ def logout():
     return redirect(url_for('login'))
 
 #Apartado para saber el perfil de usuario
-@app.route('/perfil')
+@app.route('/perfil', methods=['GET', 'POST'])
 def perfil():
     if logged_in_user:
-        perfil_usuario = api.get_user(correo_usuario)
-        nombre = perfil_usuario['Nombre_completo']
-        direccion = perfil_usuario['Direccion']
-        email = perfil_usuario['email']
-        tarjeta = perfil_usuario['Tarjeta']['No_tarjeta']
-        tarjeta = '*** ' + tarjeta[-4:]
-        ID = perfil_usuario['ID']
-        return render_template('perfil.html', name=nombre, address=direccion, correo=email, cuenta=tarjeta, id=ID)
+        #Just to get the total of weeks for the dropdown 
+        current_week = request.form.get('current_week')
+        if current_week == None:
+            current_week = 0
+        current_week = int(str(current_week))
+        user_grades = apiGrades.get_user_grades(correo_usuario, current_week)
+        total_weeks = apiGrades.get_total_weeks()
+        weeks = []
+        helper_weeks = 1
+        while helper_weeks <= total_weeks:
+            weeks.append(helper_weeks)
+            helper_weeks = helper_weeks + 1
+
+        #Filling the lists for the grades for the user
+        class_name = []
+        academic_grade = []
+        team_work_grade = []
+        communication_skill_grade = []
+        for grades in user_grades:
+            class_name.append(grades['class'])
+            academic_grade.append(grades['academic'])
+            team_work_grade.append(grades['teamWork'])
+            communication_skill_grade.append(grades['communication'])
+        return render_template('perfil.html', weeks=weeks, class_name=class_name, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)
     else:
         return redirect(url_for('login'))
 

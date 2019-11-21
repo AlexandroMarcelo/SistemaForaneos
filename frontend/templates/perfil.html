@@ -1,34 +1,37 @@
 {% extends 'layout.html' %}
-<title>Perfil</title>
+<title>Classes</title>
 {% block body %}
-
-    <div class="w3-row-padding w3-padding-64 w3-container">
-        <h1>Tu Perfil:</h1>
-            <div>
-                <table style="width:100%">
-                    <tr>
-                        <td>ID</td>
-                        <td>{{id}}</td>
-                    </tr>
-                    <tr>
-                        <td>Nombre:</td>
-                        <td>{{name}}</td>
-                    </tr>
-                    <tr>
-                        <td>Correo</td>
-                        <td>{{correo}}</td>
-                    </tr>
-                    <tr>
-                        <td>Direccion</td>
-                        <td>{{address}}</td>
-                    </tr>
-                    <tr>
-                        <td>Tarjeta de pago</td>
-                        <td>{{cuenta}}</td>
-                    </tr>
-            </table>
+    <form method='POST' action="{{ url_for('perfil') }}">
+        <div class="w3-row-padding w3-padding-64 w3-container">
+            <h1>Your Classes:</h1>
+                <div>
+                    <select name=current_week method='GET' action='/'>
+                        {% for week in weeks %}
+                            <option value="{{week}}" SELECTED>{{week}}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">View Week</button>
+                </div>
+                <div>
+                    <table style="width:100%">
+                        <tr>
+                            <td>Class:</td>
+                            <td>Academic:</td>
+                            <td>Team Work:</td>
+                            <td>Communication Skills:</td>
+                        </tr>
+                        {% for class in class_name %}
+                        <tr>
+                            <td>{{class_name[loop.index0]}}</td>
+                            <td>{{academic_grade[loop.index0]}}</td>
+                            <td>{{team_work_grade[loop.index0]}}</td>
+                            <td>{{communication_skill_grade[loop.index0]}}</td>
+                        </tr>
+                        {% endfor %}
+                </table>
+            </div>
         </div>
-    </div>
+    </form>
     
     <style>
         table, th, td {
@@ -39,6 +42,12 @@
             padding: 15px;
             font-size:20px
         }
+        select {
+            margin: 30px 10px;
+            width: 300px;
+            text-align: center;
+        }
+
     </style>
 
 {% endblock %}
