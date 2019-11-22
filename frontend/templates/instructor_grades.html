@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Grades</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  
+</head>
+<body>
+    {% include 'includes/_navbar.html' %}
+    {% include '/includes/_messages.html' %}
+    <form method='POST' action="{{ url_for('instructor_grades') }}">
+      <div class="w3-row-padding w3-padding-64 w3-container"> 
+        <div class="container">
+          <h2>Stundets Grades of {{current_class}}:</h2>
+          
+          <p>Select the week of your preference, to search for grades</p>  
+          <div>
+              <select name=current_week method='GET' action='/'>
+                  {% for week in weeks %}
+                      <option value="{{week}}" SELECTED>{{week}}</option>
+                  {% endfor %}
+              </select>
+              <button type="submit">View Week</button>
+              <h2 class="currentWeek">Current Week {{current_week}}</h2>
+          </div>
+          <p>Instructor, you can search for a particular grade by just typing something related to it in the search field:</p>  
+          <input class="form-control" id="myInput" type="text" placeholder="Search..">
+          <table class="table table-bordered ">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <td>Academic:</td>
+                <td>Team Work:</td>
+                <td>Communication Skills:</td>
+              </tr>
+            </thead>
+            <tbody id="myTable">
+              {% for studnet in student_id %}
+                <tr>
+                    <td>{{student_id[loop.index0]}}</td>
+                    <td>{{academic_grade[loop.index0]}}</td>
+                    <td>{{team_work_grade[loop.index0]}}</td>
+                    <td>{{communication_skill_grade[loop.index0]}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          
+        </div>
+      </div>
+    </form>
+  </body>
+<script>
+  var email = "Not selected"
+  $(document).ready(function(){
+    $("#myInput").on("keyup", function() {
+      var value = $(this).val().toLowerCase();
+      $("#myTable tr").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+      });
+    });
+  });
+  function deleteSelectedRow() {
+    if (email != "Not selected")
+    {
+      if (confirm("¿Estás seguro que deseas eliminar al usuario asociado al correo: " + email + "?")) {
+        alert("Se eliminó el usuario");
+      } else {
+        alert("No se eliminó el usuario");
+      }
+    }
+    else
+    {
+      alert("No has seleccionado un usuario.");
+    }
+  };
+</script>
+<style>
+  
+  select {
+      margin: 30px 10px;
+      width: 300px;
+      text-align: center;
+  }
+  .currentWeek {
+    float: right;
+  }
+</style>
+</html>

@@ -1,9 +1,10 @@
 {% extends 'layout.html' %}
 <title>Classes</title>
 {% block body %}
-    <form method='POST' action="{{ url_for('perfil') }}">
+    <form method='POST' action="{{ url_for('user_grades') }}">
         <div class="w3-row-padding w3-padding-64 w3-container">
             <h1>Your Classes:</h1>
+            <p>Select the week of your preference, to search for grades</p>  
                 <div>
                     <select name=current_week method='GET' action='/'>
                         {% for week in weeks %}
@@ -11,6 +12,7 @@
                         {% endfor %}
                     </select>
                     <button type="submit">View Week</button>
+                    <h2>Current Week {{current_week}}</h2>
                 </div>
                 <div>
                     <table style="width:100%">
@@ -46,6 +48,9 @@
             margin: 30px 10px;
             width: 300px;
             text-align: center;
+        }
+        h2 {
+            float: right;
         }
 
     </style>

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Borrar Clase</title>
+  <title>Classes</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
@@ -19,43 +19,31 @@
 <body>
     {% include 'includes/_navbar.html' %}
     {% include '/includes/_messages.html' %}
-    <div class="w3-row-padding w3-padding-64 w3-container"> 
-      <div class="container">
-        <h2>Clases:</h2>
-        <p>Busca una clase, escribe el ID en el campo que se especifíca y posteriormente da click en el botón 'Eliminar Clase' para borrar la clase:</p>  
-        <input class="form-control" id="myInput" type="text" placeholder="Search..">
-        <br>
-        <table class="table table-bordered ">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre clase</th>
-              <th>Instructores</th>
-              <th>Horarios</th>
-            </tr>
-          </thead>
-          <tbody id="myTable">
-            {% for usuario in id_todas_clases %}
+    <form method='POST' action="{{ url_for('instructor_grades') }}">
+      <div class="w3-row-padding w3-padding-64 w3-container"> 
+        <div class="container">
+          <h2>Classes:</h2>
+          <p>Search for a class and click it to view the grades of your students:</p>  
+          <input class="form-control" id="myInput" type="text" placeholder="Search..">
+          <table class="table table-bordered ">
+            <thead>
               <tr>
-                  <td>{{id_todas_clases[loop.index0]}}</td>
-                  <td>{{nombre_todas_clases[loop.index0]}}</td>
-                  <td>{{nombre_todos_instructores[loop.index0]}}</td>
-                  <td>{{horarios_todas_clases[loop.index0]}}</td>
+                <th>Class:</th>
+                <th>Select the class</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% from 'includes/_formhelpers.html' import render_field %}
-        <form method="POST" action="">
-          <div class="form-group">
-              {{render_field(form.id_clase, class_="form-control")}}
-          </div>
-          <p><input type="submit" class="btn btn-primary" value="Eliminar Clase"></p>
-        </form>
-        <!--<button type="submit" class="btn btn-primary" id="button" onclick="deleteSelectedRow()">Eliminar</button>-->
-        
+            </thead>
+            <tbody id="myTable">
+              {% for class in class_name %}
+                <tr>
+                    <td>{{class_name[loop.index0]}}</td>
+                    <td><a href="{{ url_for('instructor_grades', selected_class=class_name[loop.index0]) }}" type="submit">View Grades</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </form>
   </body>
 <script>
   var email = "Not selected"
@@ -66,7 +54,6 @@
         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
       });
     });
-  });
   function deleteSelectedRow() {
     if (email != "Not selected")
     {

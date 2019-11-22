@@ -56,19 +56,20 @@ def login():
         correo_usuario = email
         #Comparar contrasenias
         password = sha256_crypt.encrypt(str(input_password))
-        print(password)
+        #print(password)
         #password_redis = api.get_password_user(email)
 
         password_redis = True
-        print(input_password)
+        #print(input_password)
         
-        print(password_redis)
-        if domain == 'mambafit.com': #para los instructores
+        #print(password_redis)
+        if domain == 'tec.mx': #for teachers
             if password_redis is not False: #Not found
                 #if sha256_crypt.verify(input_password, password_redis):
                 if True:
+                    teacher_name = apiGrades.get_teacher_name(email)
                     session['instructor'] = True
-                    session['nombre'] = 'Instructor'
+                    session['nombre'] = str(teacher_name)
                     global logged_in_instructor
                     logged_in_instructor = True
                     return redirect(url_for('home'))
@@ -81,7 +82,7 @@ def login():
         #Users
         else:
             global nombre_usuario
-            nombre_usuario = api.get_name_user(email)
+            nombre_usuario = apiGrades.get_name_student(email)
             #print(correo_usuario)
             if password_redis == False: #Not found
                 error = 'Correo no encontrado'
@@ -103,7 +104,7 @@ def login():
                     return render_template('login.html', error=error)
                 '''
     
-    print(api.get_all_users())
+    #print(api.get_all_users())
     return render_template('login.html')
 
 #Logout
@@ -120,9 +121,9 @@ def logout():
     logged_in_instructor = False
     return redirect(url_for('login'))
 
-#Apartado para saber el perfil de usuario
-@app.route('/perfil', methods=['GET', 'POST'])
-def perfil():
+#Where the student can view their grades of each class
+@app.route('/user_grades', methods=['GET', 'POST'])
+def user_grades():
     if logged_in_user:
         #Just to get the total of weeks for the dropdown 
         current_week = request.form.get('current_week')
@@ -147,254 +148,70 @@ def perfil():
             academic_grade.append(grades['academic'])
             team_work_grade.append(grades['teamWork'])
             communication_skill_grade.append(grades['communication'])
-        return render_template('perfil.html', weeks=weeks, class_name=class_name, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)
+        return render_template('user_grades.html', current_week=current_week, weeks=weeks, class_name=class_name, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)
     else:
         return redirect(url_for('login'))
 
 
-#Apartado para saber la dieta del usuario
-@app.route('/dieta')
-def dieta():
-    if logged_in_user:
-        #comidas = api.get_food()
-        #print(comidas)
-        comida_usuario = api.get_food_user(correo_usuario)
-        nombre_comida = ""
-        ingredientes = ""
-        descripcion = ""
-        
-        nombre_comidas_array = []
-        ingredientes_array = []
-        descripcion_array = []
-        tiene_comidas = False
 
-        if comida_usuario is not None:
-            for i in range(len(comida_usuario)):
-                if comida_usuario[i]['Borrada'] == 0:
-                    nombre_comida = comida_usuario[i]['Nombre_comida']
-                    ingredientes = comida_usuario[i]['Ingredientes']
-                    descripcion = comida_usuario[i]['Descripcion']
-
-                    nombre_comidas_array.append(nombre_comida)
-                    ingredientes_array.append(ingredientes)
-                    descripcion_array.append(descripcion)
-
-                    tiene_comidas = True
-            if not nombre_comida:
-                tiene_comidas = False
-        else:
-            tiene_comidas = False
-
-        return render_template('dieta.html', tiene_comidas = tiene_comidas, nombre_comidas_array = nombre_comidas_array, ingredientes_array = ingredientes_array, descripcion_array = descripcion_array)
-    else:
-        return redirect(url_for('login'))
-    
-class deleteDietForm(Form):
-    correo_usuario = StringField('Correo del Usuario', [
-        validators.DataRequired(),
-        validators.Length(min=3, max=50)]
-        )
-    id_comida = StringField('ID de la Comida', [
-        validators.DataRequired(),
-        validators.Length(min=1, max=50)]
-        )
-
-#Apartado para borrar dietas a usuarios
-@app.route('/delete_diet', methods=['GET', 'POST'])
-def delete_diet():
-    if logged_in_instructor:
-        id_comidas = []
-        nombre_comidas = []
-        usuario_comidas = []
-        todas_comidas = api.get_food()
-        print(todas_comidas)
-        for i in range(len(todas_comidas)):
-            if todas_comidas[i]['Borrada'] == 0:
-                id_comidas.append(int(todas_comidas[i]['Id_comida']))
-                nombre_comidas.append(todas_comidas[i]['Nombre_comida'])
-                usuario_comidas.append(todas_comidas[i]['Id_Cliente'])
-        
-
-        form = deleteDietForm(request.form)
-        if request.method == 'POST' and form.validate():
-            correo_usuario = form.correo_usuario.data
-            id_comida = form.id_comida.data
-            print(id_comida)
-            if id_comida.isdigit():
-
-                if correo_usuario.find('@') != -1:
-                    existe_usuario = api.get_user(correo_usuario)
-                    if existe_usuario is not None:
-                        user_diet = api.get_food_id(int(id_comida))
-                        if user_diet:
-                            if user_diet[0]['Id_Cliente'] == correo_usuario:
-                                borrar_comida = api.delete_food(int(id_comida))
-                                if borrar_comida is not False:
-                                    return redirect(url_for('home'))
-                                else:
-                                    error = 'El ID de la comida no existe, intenta con un id correcto'
-                                    return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-                            else:
-                                error = 'No existe la comida para el usuario especificado'
-                                return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-                        else:
-                            error = 'No existe la comida'
-                            return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-                
-                    else: 
-                        error = 'No existe el correo asociado a una cuenta'
-                        return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-                else:
-                    error = 'No es un correo valido'
-                    return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-            else:
-                error = 'Ingresa un ID que sea un numero'
-                return render_template('delete_diet.html', form = form , error = error, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-        return render_template('delete_diet.html', form = form, id_comidas = id_comidas, nombre_comidas = nombre_comidas, usuario_comidas = usuario_comidas)
-
-    else:
-        return redirect(url_for('login'))
-    
-
-
-@app.route('/clases')
-def clases():
-    if logged_in_user:
-        todas_clases = api.get_classes()
-        nombre_todas_clases = []
-        id_todas_clases = []
-        nombre_todos_instructores = []
-        horarios_todas_clases = []
-        aux_nombre_instructores = []
-        aux_horarios = [] 
-
-        for i in range(len(todas_clases)):
-            #print('Debug')
-            #print(todas_clases[i]['Cancelada'])
-            if int(todas_clases[i]['Cancelada']) == 0:
-                nombre_todas_clases.append(todas_clases[i]['Nombre'])
-                id_todas_clases.append(todas_clases[i]['_id'])
-                '''for x in range(len(todas_clases[i]['Instructores'])):
-                    nombre_todos_instructores.append(todas_clases[i]['Instructores'][x])
-                for p in range(len(todas_clases[i]['Horarios'])):
-                    horarios_todas_clases.append(todas_clases[i]['Horarios'][p])'''
-                #nombre_todos_instructores.append(todas_clases[i]['Instructores'])
-                for x in range(len(todas_clases[i]['Instructores'])):
-                    coach = api.get_one_instructor_id(todas_clases[i]['Instructores'][x])
-                    nombre_coach = coach['Nombre_completo']
-                    correo_coach = coach['email']
-                    nombre_coach = ' ' + nombre_coach + ' (' + correo_coach + ') '
-                    #print(nombre_coach)
-                    aux_nombre_instructores.append(nombre_coach)
-                #[x.encode('utf-8') for x in aux_nombre_instructores]
-                #print(aux_nombre_instructores)
-                #aux_nombre_instructores = [r.encode('utf-8') for r in aux_nombre_instructores]
-                aux_nombre_instructores = ', '.join(map(str, aux_nombre_instructores))
-                nombre_todos_instructores.append(aux_nombre_instructores)
-                #print(nombre_todos_instructores)
-                aux_nombre_instructores = []
-                for p in range(len(todas_clases[i]['Horarios'])):
-                    hors = todas_clases[i]['Horarios'][p]
-                    hors = ' ' + hors + ' (' + str(p) + ') '
-                    aux_horarios.append(hors)
-                aux_horarios = ', '.join(map(str, aux_horarios))
-                horarios_todas_clases.append(aux_horarios)
-                aux_horarios= []
-
-
-        clases_usuario = api.get_classes_user(correo_usuario)
-        id_horario = ""
-        id_instructor = 0
-        id_clase = ""
-        horario_clase = ""
-        nombre_clase = ""
-        nombre_instructor = ""
-        ubicacion_clase = ""
-        clases_aux = []
-        nombre_clases = []
-        nombre_instructores = []
-        horario_clases = []
-        ubicacion_clases = []
-        
-        if clases_usuario is not None:
-            if clases_usuario[0]['Horario'] != -1:
-                for i in range(len(clases_usuario)):
-                    #print(clases_usuario[i])
-                    #PUEDO BORRAR ESTO
-                    id_horario = str(clases_usuario[i]['Horario'])
-                    id_instructor = clases_usuario[i]['Instructor']
-                    id_clase = clases_usuario[i]['Id_clase']
-
-                    #Obtener la clase mediante el id
-                    clase_info = api.get_one_class(id_clase)
-                    print(clase_info)
-                    #Guardando la informacion de las clases del usuario
-                    horario_clase = clase_info['Horarios'][int(id_horario)] 
-                    #Obtener instructor
-                    id_instructor_str = clase_info['Instructores'][int(id_instructor)] 
-                    info_instructor = api.get_one_instructor_id(id_instructor_str)
-                    nombre_instructor = info_instructor['Nombre_completo']
-                    nombre_clase = clase_info['Nombre']
-                    #obtener salon (primero redefinir la estructura de la bd.tabla clase)
-
-                    ubicacion_clase = clase_info['Ubicacion']
-
-                    if int(clase_info['Cancelada']) == 0:
-                        nombre_clases.append(nombre_clase)
-                        nombre_instructores.append(nombre_instructor)
-                        horario_clases.append(horario_clase)
-                        ubicacion_clases.append(ubicacion_clase)
-                        tiene_clases = True
-                if len(nombre_clases) == 0:
-                    tiene_clases = False
-            else:
-                tiene_clases = False
-        else:
-            tiene_clases = False
-
-        return render_template('clases.html', nombre_todas_clases = nombre_todas_clases, id_todas_clases = id_todas_clases, nombre_todos_instructores = nombre_todos_instructores, horarios_todas_clases = horarios_todas_clases, tiene_clases = tiene_clases, nombre_clases = nombre_clases, nombre_instructores = nombre_instructores, horario_clases = horario_clases, ubicacion_clases = ubicacion_clases)
-    
-    else:
-        return redirect(url_for('login'))
-    
-
-#Borrar un usuario
-class deleteForm(Form):
-    correo = StringField('Ingresa el correo del usuario:', [
-        validators.DataRequired(),
-        validators.Length(min=3, max=50)]
-        )
 
 #Borrar a un usuario en especifico
-@app.route('/delete_users', methods=['GET', 'POST'])
-def delete_users():
+@app.route('/instructor_grades', methods=['GET', 'POST'])
+def instructor_grades():
     if logged_in_instructor:
-        usuarios = api.get_all_users()
-        nombres_usuarios = []
-        correos_usuarios = []
-        id_usuarios = []
-        direcciones_usuarios = []
-
-        for i in range(len(usuarios)):
-            id_usuarios.append(usuarios[i]['ID'])
-            nombres_usuarios.append(usuarios[i]['Nombre_completo'])
-            correos_usuarios.append(usuarios[i]['email'])
-            direcciones_usuarios.append(usuarios[i]['Direccion'])
+        #Just to get the total of weeks for the dropdown 
+        current_week = request.form.get('current_week')
+        if current_week == None:
+            current_week = 0
+        current_week = int(str(current_week))
+        session['selected_class'] = True
+        selected_class = "Programming"
+        if request.args.get('selected_class', None) == None:
+            selected_class = session['class']
+        else: 
+            selected_class = request.args.get('selected_class', None)
+            session['class'] = request.args.get('selected_class', None)
         
-        form = deleteForm(request.form)
-        if request.method == 'POST':
-            email_user = form.correo.data
-            #print(email_user)
-            resultado_borrar = api.delete_user(email_user)
-            if resultado_borrar == False:
-                error = 'El correo que ingresaste no esta en la base de datos, vuelve a intentarlo'
-                return render_template('delete_users.html', error = error, form = form, id_usuarios = id_usuarios, nombres_usuarios = nombres_usuarios, correos_usuarios = correos_usuarios, direcciones_usuarios = direcciones_usuarios)
-            else:
-                return redirect(url_for('home')) 
-        return render_template('delete_users.html', form = form, id_usuarios = id_usuarios, nombres_usuarios = nombres_usuarios, correos_usuarios = correos_usuarios, direcciones_usuarios = direcciones_usuarios)
-            
+        users_grades = apiGrades.get_students_grades(selected_class, current_week)
+        total_weeks = apiGrades.get_total_weeks()
+        weeks = []
+        helper_weeks = 1
+        while helper_weeks <= total_weeks:
+            weeks.append(helper_weeks)
+            helper_weeks = helper_weeks + 1
+
+        #Filling the lists for the grades for the user
+        student_id = []
+        class_name = []
+        academic_grade = []
+        team_work_grade = []
+        communication_skill_grade = []
+        for grades in users_grades:
+            student_id.append(grades['studentID'])
+            academic_grade.append(grades['academic'])
+            team_work_grade.append(grades['teamWork'])
+            communication_skill_grade.append(grades['communication'])
+        return render_template('instructor_grades.html', current_week=current_week, current_class=selected_class, student_id=student_id, weeks=weeks, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)    
     else:
         return redirect(url_for('login'))
+
+#Borrar a un usuario en especifico
+@app.route('/classes', methods=['GET', 'POST'])
+def classes():
+    if logged_in_instructor:
+        classes = apiGrades.get_classes_teacher(correo_usuario)
+        
+        return render_template('classes.html', class_name=classes)    
+    else:
+        return redirect(url_for('login'))
+
+
+
+
+
+
+
+
 
 #Form para crear una clase
 class claseForm(Form):
