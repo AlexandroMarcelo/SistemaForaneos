@@ -4,21 +4,26 @@ from flask import Flask,  jsonify, render_template, flash, redirect, url_for, se
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from flask_wtf import FlaskForm
+from werkzeug.utils import secure_filename
+from csvvalidator import *
 #from DBmodels import Gimnasio
 #import jinja2
-import os, sys
+import os, sys, getopt, pprint
+import pandas as pd
 import json
+import csv
 sys.path.insert(0, os.path.abspath(".."))
 
 
 #from api.DBmodels import Gimnasio
-from api import GymAPI
 from api import GradesAPI
 
 app = Flask(__name__)
 app.secret_key='12345'
+UPLOAD_FOLDER = './documentos/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = set(['txt','csv'])
 
-api = GymAPI.GymAPI()
 apiGrades = GradesAPI.GradesAPI()
 nombre_usuario = ""
 correo_usuario = "daniel@gmail.com" #BORRAR
@@ -154,7 +159,6 @@ def user_grades():
 
 
 
-
 #Borrar a un usuario en especifico
 @app.route('/instructor_grades', methods=['GET', 'POST'])
 def instructor_grades():
@@ -191,6 +195,54 @@ def instructor_grades():
             academic_grade.append(grades['academic'])
             team_work_grade.append(grades['teamWork'])
             communication_skill_grade.append(grades['communication'])
+
+        ### Upload function
+        if request.method == 'POST':
+        # check if the post request has the file part
+            if 'file' not in request.files:
+                flash('No file part')
+            file = request.files['file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                path_csv = app.config['UPLOAD_FOLDER'] + filename
+                csvfile = open(path_csv, 'r')
+                csvfile2 = open(path_csv, 'r')
+                reader = csv.DictReader( csvfile )
+                reader2 = csv.DictReader( csvfile2 )
+                header= ['studentID', 'academic', 'teamWork', 'communication']
+                field_names = ('studentID', 'academic', 'teamWork', 'communication')
+                validator = CSVValidator(field_names)
+                # basic header and record length checks
+                validator.add_header_check('EX1', 'bad header')
+                problems = validator.validate(reader)
+                
+                if bool(problems):
+                    if problems[0]['code'] == 'EX1':
+                        flash('ERROR: Document is invalid, please check that it has the correct format!!')
+                else:
+                    flash('File successfully uploaded')
+                    for each in reader2:
+                        row={}
+                        print('hola')
+                        row['class'] = session['class']
+                        row['week'] = total_weeks + 1
+                        for field in header:
+                            if row[field] != each[field]:
+                                flash('BAD FORMAT IN CSV!!!')
+                            else:
+                                row[field]=each[field]
+                        print(row)
+                        #insert_grades = apiGrades.insert_grades(row)
+                        if inser_grades is False:
+                            print("ERROR PERRO")
+                os.remove(path_csv)
+            else:
+
+                flash('Allowed file types are txt, csv')
+                os.remove(path_csv)
+            ### Upload funtion end
+
         return render_template('instructor_grades.html', current_week=current_week, current_class=selected_class, student_id=student_id, weeks=weeks, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)    
     else:
         return redirect(url_for('login'))
@@ -205,103 +257,8 @@ def classes():
     else:
         return redirect(url_for('login'))
 
-
-
-
-
-
-
-
-
-#Form para crear una clase
-class claseForm(Form):
-    nombre_clase = StringField('Nombre Clase:', [
-        validators.DataRequired(),
-        validators.Length(min=2, max=50)]
-        )
-    id_clase = StringField('Clase ID:', [
-        validators.DataRequired(),
-        validators.Length(min=1, max=500)]
-        )
-    horarios =  StringField('Horarios Clase:', [
-        validators.DataRequired(),
-        validators.Length(min=3, max=50)]
-        )
-    ubicacion =  StringField('Ubicacion Clase:', [
-        validators.DataRequired(),
-        validators.Length(min=3, max=50)]
-        )
-
-#Borrar una clase
-class deleteClassForm(Form):
-    id_clase = StringField('Ingresa el ID de la clase ha borrar:', [
-        validators.DataRequired(),
-        validators.Length(min=1, max=50)]
-        )
-
-#Borra una clase en especifico
-@app.route('/delete_class', methods=['GET', 'POST'])
-def delete_class():
-    if logged_in_instructor:
-        form = claseForm(request.form)
-        
-        todas_clases = api.get_classes()
-        nombre_todas_clases = []
-        id_todas_clases = []
-        nombre_todos_instructores = []
-        horarios_todas_clases = []
-        aux_nombre_instructores = []
-        aux_horarios = []
-
-        for i in range(len(todas_clases)):
-            if int(todas_clases[i]['Cancelada']) == 0:
-                nombre_todas_clases.append(todas_clases[i]['Nombre'])
-                id_todas_clases.append(todas_clases[i]['_id'])
-                for x in range(len(todas_clases[i]['Instructores'])):
-                    
-                    coach = api.get_one_instructor_id(todas_clases[i]['Instructores'][x])
-                    nombre_coach = coach['Nombre_completo']
-                    nombre_coach = ' ' + nombre_coach + ' (' + str(x) + ') '
-                    aux_nombre_instructores.append(nombre_coach.encode('utf-8'))
-
-                aux_nombre_instructores = ', '.join(map(str, aux_nombre_instructores))
-                nombre_todos_instructores.append(aux_nombre_instructores)
-                aux_nombre_instructores = []
-
-                for p in range(len(todas_clases[i]['Horarios'])):
-                    hors = todas_clases[i]['Horarios'][p]
-                    hors = ' ' + hors + ' (' + str(p) + ') '
-                    aux_horarios.append(hors.encode('utf-8'))
-                aux_horarios = ', '.join(map(str, aux_horarios))
-                horarios_todas_clases.append(aux_horarios)
-                aux_horarios= []
-
-        form = deleteClassForm(request.form)
-        if request.method == 'POST' and form.validate():
-            id_clase = form.id_clase.data
-            
-            clase_info = api.get_one_class(id_clase)
-
-            if clase_info is not False: #Existe la clase ha borrar
-                if clase_info['Cancelada'] == 0:
-                    resultado_borrar = api.delete_class(id_clase)
-                    #print(resultado_borrar)
-                    return redirect(url_for('home'))
-                else:
-                    error = 'Clase ya cancelada, inserta un id de las clases que aparecen en la lista'
-                    return render_template('delete_class.html', form=form, error = error, nombre_todas_clases = nombre_todas_clases, horarios_todas_clases = horarios_todas_clases, nombre_todos_instructores = nombre_todos_instructores, id_todas_clases = id_todas_clases)
-
-            else:
-                error = 'No existe la clase con el id dado, checa bien la tabla'
-                return render_template('delete_class.html', form=form, error = error, nombre_todas_clases = nombre_todas_clases, horarios_todas_clases = horarios_todas_clases, nombre_todos_instructores = nombre_todos_instructores, id_todas_clases = id_todas_clases)
-
-        return render_template('delete_class.html', form = form, nombre_todas_clases = nombre_todas_clases, horarios_todas_clases = horarios_todas_clases, nombre_todos_instructores = nombre_todos_instructores, id_todas_clases = id_todas_clases)
-    
-    else:
-        return redirect(url_for('login'))
-
-    
-
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
     
