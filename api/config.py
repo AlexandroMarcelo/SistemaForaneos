@@ -1,7 +1,10 @@
 # --- On cloud resources ---
 # Mongo configuration
 #MONGO_URI = 'connectionString'
-MONGO_URI = 'mongodb+srv://Admin:aaa@cluster0-0nw5b.gcp.mongodb.net/test?retryWrites=true'
+
+#MONGO_URI = 'mongodb+srv://Admin:aaa@cluster0-0nw5b.gcp.mongodb.net/test?retryWrites=true'
+MONGO_URI = 'mongodb+srv://alex:alexandro1998@cluster0-qbjef.mongodb.net/test?retryWrites=true&w=majority'
+
 # Redis configuration
 #REDIS_HOST = 'connectionString'
 #REDIS_PORT = port

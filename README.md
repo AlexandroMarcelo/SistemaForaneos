@@ -81,7 +81,8 @@ pip install flask
 pip install flask_wtf
 pip install flask_api
 pip install dnspython
-
+pip3 install pandas
+pip3 install csvvalidator
 ### 3.4 Backend
 
 Se desarrollo en python, utilizando clases y funciones para lograr comunicar las bases de datos con el frontend mediante el uso de una API.
