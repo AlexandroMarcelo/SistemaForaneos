@@ -195,13 +195,15 @@ def instructor_grades():
             academic_grade.append(grades['academic'])
             team_work_grade.append(grades['teamWork'])
             communication_skill_grade.append(grades['communication'])
-
+        path_csv = ''
         ### Upload function
         if request.method == 'POST':
         # check if the post request has the file part
             if 'file' not in request.files:
                 flash('No file part')
             file = request.files['file']
+            if file.filename == '':
+                flash('Please add a valid file to upload grades to week: ' + str(total_weeks+1))
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -224,23 +226,20 @@ def instructor_grades():
                     flash('File successfully uploaded')
                     for each in reader2:
                         row={}
-                        print('hola')
                         row['class'] = session['class']
                         row['week'] = total_weeks + 1
                         for field in header:
-                            if row[field] != each[field]:
-                                flash('BAD FORMAT IN CSV!!!')
-                            else:
                                 row[field]=each[field]
                         print(row)
-                        #insert_grades = apiGrades.insert_grades(row)
-                        if inser_grades is False:
+                        insert_grades = apiGrades.insert_grades(row)
+                        if insert_grades is False:
                             print("ERROR PERRO")
                 os.remove(path_csv)
             else:
-
-                flash('Allowed file types are txt, csv')
-                os.remove(path_csv)
+                if file.filename == '':
+                    flash('Allowed file types are csv')
+                if path_csv is not '':
+                    os.remove(path_csv)
             ### Upload funtion end
 
         return render_template('instructor_grades.html', current_week=current_week, current_class=selected_class, student_id=student_id, weeks=weeks, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)    

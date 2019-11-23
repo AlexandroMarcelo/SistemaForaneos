@@ -130,7 +130,7 @@ class Grades(object):
         """
         Insert the grades of a new week
         """
-        cursor = user_collection.insert_one(document)
+        cursor = self.user_collection.insert_one(document)
 
         print(cursor)
         print(cursor.inserted_id)
