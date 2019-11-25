@@ -168,6 +168,7 @@ def instructor_grades():
         if current_week == None:
             current_week = 0
         current_week = int(str(current_week))
+        session['week'] = current_week
         session['selected_class'] = True
         selected_class = "Programming"
         if request.args.get('selected_class', None) == None:
@@ -190,57 +191,112 @@ def instructor_grades():
         academic_grade = []
         team_work_grade = []
         communication_skill_grade = []
-        for grades in users_grades:
-            student_id.append(grades['studentID'])
-            academic_grade.append(grades['academic'])
-            team_work_grade.append(grades['teamWork'])
-            communication_skill_grade.append(grades['communication'])
+        
         path_csv = ''
         ### Upload function
         if request.method == 'POST':
-        # check if the post request has the file part
-            if 'file' not in request.files:
-                flash('No file part')
-            file = request.files['file']
-            if file.filename == '':
-                flash('Please add a valid file to upload grades to week: ' + str(total_weeks+1))
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                path_csv = app.config['UPLOAD_FOLDER'] + filename
-                csvfile = open(path_csv, 'r')
-                csvfile2 = open(path_csv, 'r')
-                reader = csv.DictReader( csvfile )
-                reader2 = csv.DictReader( csvfile2 )
-                header= ['studentID', 'academic', 'teamWork', 'communication']
-                field_names = ('studentID', 'academic', 'teamWork', 'communication')
-                validator = CSVValidator(field_names)
-                # basic header and record length checks
-                validator.add_header_check('EX1', 'bad header')
-                problems = validator.validate(reader)
-                
-                if bool(problems):
-                    if problems[0]['code'] == 'EX1':
-                        flash('ERROR: Document is invalid, please check that it has the correct format!!')
-                else:
-                    flash('File successfully uploaded')
-                    for each in reader2:
-                        row={}
-                        row['class'] = session['class']
-                        row['week'] = total_weeks + 1
-                        for field in header:
-                                row[field]=each[field]
-                        print(row)
-                        insert_grades = apiGrades.insert_grades(row)
-                        if insert_grades is False:
-                            print("ERROR PERRO")
-                os.remove(path_csv)
-            else:
+            if request.form['submit_button'] == 'Submit Grade':
+                # check if the post request has the file part
+                if 'file' not in request.files:
+                    flash('No file part')
+                file = request.files['file']
                 if file.filename == '':
-                    flash('Allowed file types are csv')
-                if path_csv is not '':
+                    flash('Please add a valid file to upload grades to week: ' + str(total_weeks+1))
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    path_csv = app.config['UPLOAD_FOLDER'] + filename
+                    csvfile = open(path_csv, 'r')
+                    csvfile2 = open(path_csv, 'r')
+                    reader = csv.DictReader( csvfile )
+                    reader2 = csv.DictReader( csvfile2 )
+                    header= ['studentID', 'academic', 'teamWork', 'communication']
+                    field_names = ('studentID', 'academic', 'teamWork', 'communication')
+                    validator = CSVValidator(field_names)
+                    # basic header and record length checks
+                    validator.add_header_check('EX1', 'bad header')
+                    problems = validator.validate(reader)
+                    
+                    if bool(problems):
+                        if problems[0]['code'] == 'EX1':
+                            flash('ERROR: Document is invalid, please check that it has the correct format!!')
+                    else:
+                        flash('File successfully uploaded')
+                        for each in reader2:
+                            row={}
+                            row['class'] = session['class']
+                            row['week'] = total_weeks + 1
+                            for field in header:
+                                    row[field]=each[field]
+                            print(row)
+                            print("PASMDKONASJDSJDNJAOJSJSBJASBIJABJSBJADBJDASBJ")
+                            insert_grades = apiGrades.insert_grades(row)
+                            if insert_grades is False:
+                                print("ERROR PERRO")
+                            else:
+                                print("KOANsjasndjkasndkasnj dkja")
                     os.remove(path_csv)
-            ### Upload funtion end
+                else:
+                    if file.filename == '':
+                        flash('Allowed file types are csv')
+                    if path_csv is not '':
+                        os.remove(path_csv)
+                ### Upload funtion end
+            elif request.form['submit_button'] == 'Update Grade':
+                print('updating')
+                ### Update funtion begin
+                # check if the post request has the file part
+                if 'file' not in request.files:
+                    flash('No file part')
+                file = request.files['file']
+                if file.filename == '':
+                    flash('Please add a valid file to upload grades to week: ' + str(total_weeks+1))
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    path_csv = app.config['UPLOAD_FOLDER'] + filename
+                    csvfile = open(path_csv, 'r')
+                    csvfile2 = open(path_csv, 'r')
+                    reader = csv.DictReader( csvfile )
+                    reader2 = csv.DictReader( csvfile2 )
+                    header= ['studentID', 'academic', 'teamWork', 'communication']
+                    field_names = ('studentID', 'academic', 'teamWork', 'communication')
+                    validator = CSVValidator(field_names)
+                    # basic header and record length checks
+                    validator.add_header_check('EX1', 'bad header')
+                    problems = validator.validate(reader)
+                    
+                    if bool(problems):
+                        if problems[0]['code'] == 'EX1':
+                            flash('ERROR: Document is invalid, please check that it has the correct format!!')
+                    else:
+                        flash('File successfully uploaded')
+                        for each in reader2:
+                            row={}
+                            row['class'] = session['class']
+                            row['week'] = session['week']
+                            for field in header:
+                                    row[field]=each[field]
+                            print(row)
+                            update_grades = apiGrades.update_grades(row)
+                            if update_grades is False:
+                                print("ERROR")
+                                flash('The document has difference(s) with the students data base, check the document and make the format correct and update again')
+                    os.remove(path_csv)
+                else:
+                    if file.filename == '':
+                        flash('Allowed file types are csv')
+                    if path_csv is not '':
+                        os.remove(path_csv)
+                ### Upload funtion end
+            elif request.form['submit_button'] == 'View Week':
+                print('hola')
+                for grades in users_grades:
+                    student_id.append(grades['studentID'])
+                    academic_grade.append(grades['academic'])
+                    team_work_grade.append(grades['teamWork'])
+                    communication_skill_grade.append(grades['communication'])
+                
 
         return render_template('instructor_grades.html', current_week=current_week, current_class=selected_class, student_id=student_id, weeks=weeks, academic_grade=academic_grade, team_work_grade=team_work_grade, communication_skill_grade=communication_skill_grade)    
     else:

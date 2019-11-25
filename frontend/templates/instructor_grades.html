@@ -23,33 +23,35 @@
       <div class="w3-row-padding w3-padding-64 w3-container"> 
         <div class="container">
           <h2>Students Grades of {{current_class}}:</h2>
-            <dl>
-                <p>
-                  {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <ul class=flashes>
-                    {% for message in messages %}
-                      <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                    {% endif %}
-                  {% endwith %}
-                </p>
-              <p>
-                <input type="file" name="file" autocomplete="off" >
-              </p>
-            </dl>
+          <div>
+            <h5 class={text}>If you want to upload a file to insert a new week for grades just select it and upload it.</h5> 
+            <h5 class={text}>If you want to update the grades for a certain week, just select the week of your preference from the dropdown button and upload the file with the grades to be modify.</h5>  
             <p>
-              <input type="submit" value="Submit">
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul class=flashes>
+                {% for message in messages %}
+                  <li>***{{ message }}***</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+              {% endwith %}
             </p>
-          <p>Select the week of your preference, to search for grades</p>  
+            <input class={input_button} type="file" name="file" autocomplete="off" >
+          
+            <input class={input_button} type="submit" name="submit_button" value="Submit Grade">
+          
+            <input class={input_button} type="submit" name="submit_button" value="Update Grade">
+  
+        </div>
+          <p class={text}>Select the week of your preference, to search for grades/update the grades</p>  
           <div>
               <select name=current_week method='GET' action='/'>
                   {% for week in weeks %}
                       <option value="{{week}}" SELECTED>{{week}}</option>
                   {% endfor %}
               </select>
-              <button type="submit">View Week</button>
+              <button type="submit" name="submit_button" value="View Week">View Week</button>
               <h2 class="currentWeek">Current Week {{current_week}}</h2>
           </div>
           <p>Instructor, you can search for a particular grade by just typing something related to it in the search field:</p>  
@@ -113,6 +115,16 @@
   }
   .currentWeek {
     float: right;
+  }
+  li {
+    color:red;
+    list-style-type: none;
+  }
+  .input_button {
+    float: right;
+  }
+  .text{
+    margin: 100px, 0px;
   }
 </style>
 </html>

@@ -139,17 +139,21 @@ class Grades(object):
         else:
             return False
 
-    def updateGrades(self, document, class_name, week):
+    def updateGrades(self, document):
         """
         Updates the grades of the students
         """
-        cursor = user_collection.insert_one(document)
         student = self.findStudent(document['studentID'])
         if student is not None: #if exist
-            update_student = self.student_collection.update_one({'studentID': document['studentID'], "week" : week}, {'$set' : {'academic':document['academic'], 'teamWork':document['teamWork'], 'communication':document['communication']}}, upsert = True)
-            if update_student.matched_count == 1:
-                return True #updated successfully
-            else:  
+            print("asdsas")
+            print(document)
+            #update_student = self.student_collection.update_one({'studentID': document['studentID'], "week" : document['week'], "class" : document['class']}, {'$set' : {'academic':document['academic'], 'teamWork':document['teamWork'], 'communication':document['communication']}}, upsert = True) 
+            delete_student = self.user_collection.delete_one({"class" : document['class'], "week" : document['week'], 'studentID': document['studentID']})
+            print(delete_student)
+            if delete_student.deleted_count == 1:
+                cursor = self.user_collection.insert_one(document)
+                return cursor #deleted successfully
+            else:
                 return False
-        else:
+        else: #student no exist
             return False

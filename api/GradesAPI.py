@@ -34,9 +34,9 @@ class GradesAPI(object):
         inserted_grades = mongodb.insertGrades(document)
         return inserted_grades
 
-    def update_grades(self, document, class_name, week):
+    def update_grades(self, document):
         mongodb = Grades.Grades()
-        updated_grades = mongodb.updateGrades(document, class_name, week)
+        updated_grades = mongodb.updateGrades(document)
         return updated_grades
 
 #TEACHERS
