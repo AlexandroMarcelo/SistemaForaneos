@@ -223,9 +223,16 @@ def instructor_grades():
                     validator.add_header_check('EX1', 'bad header')
                     problems = validator.validate(reader)
                     
+                    '''
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass  # it was a string, not an int.
+                    '''
+
                     if bool(problems):
                         if problems[0]['code'] == 'EX1':
-                            flash('ERROR: Document is invalid, please check that it has the correct format!!')
+                            flash('ERROR: Document is invalid, please check the header, you should have studentId,academic,teamWork,communication, in that format')
                     else:
                         flash('File successfully uploaded')
                         for each in reader2:
@@ -234,12 +241,26 @@ def instructor_grades():
                             row['week'] = total_weeks + 1
                             for field in header:
                                     row[field]=each[field]
-                            print(row)
-                            insert_grades = apiGrades.insert_grades(row)
-                            if insert_grades is False:
-                                flash("Error in the DB, please check the selected file and upload it agin.")
-                            else:
-                                flash("Grades inserted correctly")
+                            
+                            try:
+                                academic = int(row['academic'])
+                                teamWork = int(row['teamWork'])
+                                communication = int(row['communication'])
+                               
+                                if (academic in range(100)) and (teamWork in range(100)) and (communication in range(100)):#stll has errors
+                                    print(row)
+                                    insert_grades = apiGrades.insert_grades(row)
+                                    if insert_grades is False:
+                                        flash("Error in the DB, please check the selected file and upload it agin.")
+                                    else:
+                                        flash("Grades inserted correctly")
+                                else:
+                                    print('Error')                                
+
+                            except ValueError:
+                                pass                             
+                                flash("Error in the file, please check that every field has a number between 0 and 100.")
+
                     os.remove(path_csv)
                 else:
                     if file.filename == '':
