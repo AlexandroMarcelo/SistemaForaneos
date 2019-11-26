@@ -25,6 +25,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = set(['txt','csv'])
 
 apiGrades = GradesAPI.GradesAPI()
+
 nombre_usuario = ""
 correo_usuario = "daniel@gmail.com" #BORRAR
 logged_in_user = True
@@ -61,17 +62,16 @@ def login():
         correo_usuario = email
         #Comparar contrasenias
         password = sha256_crypt.encrypt(str(input_password))
-        #print(password)
-        #password_redis = api.get_password_user(email)
+        print(password)
+        password_redis = apiGrades.get_password_user(email)
 
-        password_redis = True
         #print(input_password)
         
         #print(password_redis)
         if domain == 'tec.mx': #for teachers
             if password_redis is not False: #Not found
-                #if sha256_crypt.verify(input_password, password_redis):
-                if True:
+                if sha256_crypt.verify(input_password, password_redis):
+                #if True:
                     teacher_name = apiGrades.get_teacher_name(email)
                     session['instructor'] = True
                     session['nombre'] = str(teacher_name)
@@ -93,21 +93,21 @@ def login():
                 error = 'Correo no encontrado'
                 return render_template('login.html', error=error)
             else: 
-                #if sha256_crypt.verify(input_password, password_redis):
+                if sha256_crypt.verify(input_password, password_redis):
                 #Aqui
                 #if True:
-                app.logger.info('VALIDO')
-                session['logged_in'] = True
-                session['nombre'] = nombre_usuario
-                global logged_in_user
-                logged_in_user = True
-                return redirect(url_for('home'))
-                '''
+                    app.logger.info('VALIDO')
+                    session['logged_in'] = True
+                    session['nombre'] = nombre_usuario
+                    global logged_in_user
+                    logged_in_user = True
+                    return redirect(url_for('home'))
+                
                 else:
                     error = 'Usuario no encontrado'
                     app.logger.info('NO VALIDO')
                     return render_template('login.html', error=error)
-                '''
+                
     
     #print(api.get_all_users())
     return render_template('login.html')

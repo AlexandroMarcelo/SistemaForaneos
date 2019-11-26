@@ -1,12 +1,18 @@
 from flask import request, url_for, jsonify
 from flask_api import FlaskAPI, status, exceptions
-from api.DBmodels import Grades
+from api.DBmodels import Grades, Accounts
 from datetime import datetime
 from bson import ObjectId
 import json
 import random
 
 class GradesAPI(object):
+#AUTH
+    def get_password_user(self, email):
+        redis = Accounts.Sessions()
+        password = redis.getUserPassword(email)
+        return password
+
 #USERS
     def get_name_student(self,mail):
         mongodb = Grades.Grades()

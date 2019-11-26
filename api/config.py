@@ -15,8 +15,8 @@ MONGO_URI = 'mongodb+srv://alex:alexandro1998@cluster0-qbjef.mongodb.net/test?re
 #MONGO_URI = 'mongodb://localhost:27017/gimnasio'
 #
 # # Redis configuration
-REDIS_HOST = 'redis-11317.c15.us-east-1-4.ec2.cloud.redislabs.com'
+REDIS_HOST = 'redis-19775.c124.us-central1-1.gce.cloud.redislabs.com'
 #REDIS_PORT = 14025
-REDIS_PORT = 11317
+REDIS_PORT = 19775
 
-REDIS_PASSWORD = '0OZnKVAXaXzsNaiqh4r5TBKTUJbbW3vK'
+REDIS_PASSWORD = '7xSxX42nxUAOrlZsgzeGbA008kDOxmm1'
