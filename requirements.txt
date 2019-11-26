@@ -10,3 +10,5 @@ flask_wtf
 passlib
 dnspython
 datetime
+pandas
+csvvalidator
