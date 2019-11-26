@@ -77,6 +77,19 @@ class Grades(object):
                 total_weeks = total_weeks + 1
         return total_weeks
 
+    def findTotalWeeksClass(self, class_name):
+        """
+        Get the number of the total weeks for a given class
+        """
+        grades = self.findGrades()
+        
+        total_weeks = 0
+        for grade in grades:
+            if grade['class'] == class_name:
+                if int(str(grade['week'])) > total_weeks:
+                    total_weeks = total_weeks + 1
+        return total_weeks
+
 #TEACHER GRADES
     def findTeacher(self, mail):
         """
@@ -119,10 +132,13 @@ class Grades(object):
         Get the classes of the teacher
         """
         all_classes = self.findGrades()
+        teacher = self.findTeacher(mail)
+        teacher_classes = teacher['classes']
         classes = []
         for classs in all_classes:
             if classs['class'] not in classes:
-                classes.append(classs['class'])
+                if classs['class'] in teacher_classes:
+                    classes.append(classs['class'])
 
         return classes
 
@@ -145,15 +161,18 @@ class Grades(object):
         """
         student = self.findStudent(document['studentID'])
         if student is not None: #if exist
-            print("asdsas")
-            print(document)
-            #update_student = self.student_collection.update_one({'studentID': document['studentID'], "week" : document['week'], "class" : document['class']}, {'$set' : {'academic':document['academic'], 'teamWork':document['teamWork'], 'communication':document['communication']}}, upsert = True) 
-            delete_student = self.user_collection.delete_one({"class" : document['class'], "week" : document['week'], 'studentID': document['studentID']})
-            print(delete_student)
-            if delete_student.deleted_count == 1:
-                cursor = self.user_collection.insert_one(document)
-                return cursor #deleted successfully
-            else:
-                return False
-        else: #student no exist
-            return False
+            if document['class'] in student['classes']: #if the student is in the class
+                print(document)
+                #update_student = self.student_collection.update_one({'studentID': document['studentID'], "week" : document['week'], "class" : document['class']}, {'$set' : {'academic':document['academic'], 'teamWork':document['teamWork'], 'communication':document['communication']}}, upsert = True) 
+                delete_student = self.user_collection.delete_one({"class" : document['class'], "week" : document['week'], 'studentID': document['studentID']})
+                #print(delete_student)
+                if delete_student.deleted_count == 1:
+                    cursor = self.user_collection.insert_one(document)
+                    #return cursor #deleted successfully
+                    return 1
+                else:
+                    return -1 #not updated
+            else: #student no exist
+                return -2 #student is not in the class
+        else:
+            return -3 #student not exist

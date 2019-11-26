@@ -178,7 +178,7 @@ def instructor_grades():
             session['class'] = request.args.get('selected_class', None)
         
         users_grades = apiGrades.get_students_grades(selected_class, current_week)
-        total_weeks = apiGrades.get_total_weeks()
+        total_weeks = apiGrades.get_total_weeks_class(session['class'])
         weeks = []
         helper_weeks = 1
         while helper_weeks <= total_weeks:
@@ -192,6 +192,12 @@ def instructor_grades():
         team_work_grade = []
         communication_skill_grade = []
         
+        #initializing errors flags
+        updated_correctly = False
+        updated_error_db = False
+        updated_student_no_enrolled = False
+        updated_student_no_exist = False
+
         path_csv = ''
         ### Upload function
         if request.method == 'POST':
@@ -229,12 +235,11 @@ def instructor_grades():
                             for field in header:
                                     row[field]=each[field]
                             print(row)
-                            print("PASMDKONASJDSJDNJAOJSJSBJASBIJABJSBJADBJDASBJ")
                             insert_grades = apiGrades.insert_grades(row)
                             if insert_grades is False:
-                                print("ERROR PERRO")
+                                flash("Error in the DB, please check the selected file and upload it agin.")
                             else:
-                                print("KOANsjasndjkasndkasnj dkja")
+                                flash("Grades inserted correctly")
                     os.remove(path_csv)
                 else:
                     if file.filename == '':
@@ -279,9 +284,23 @@ def instructor_grades():
                                     row[field]=each[field]
                             print(row)
                             update_grades = apiGrades.update_grades(row)
-                            if update_grades is False:
-                                print("ERROR")
-                                flash('The document has difference(s) with the students data base, check the document and make the format correct and update again')
+                            if update_grades == -1:
+                                updated_error_db+=1
+                                updated_correctly = False
+                            elif update_grades == -2:
+                                updated_student_no_enrolled+=1
+                                updated_correctly = False
+                            elif update_grades == -3:
+                                updated_student_no_exist+=1
+                                updated_correctly = False
+                        if updated_correctly:
+                            flash("Everything was uploaded correctly. Grades updated")
+                        if updated_error_db >= 1:
+                            flash("Error in the DB, please check the selected file and upload it again.")
+                        if updated_student_no_enrolled >= 1:
+                            flash(str(updated_student_no_enrolled) + " students not enrolled.")
+                        if updated_student_no_exist >= 1:
+                            flash(str(updated_student_no_exist) + "The student does not exist")
                     os.remove(path_csv)
                 else:
                     if file.filename == '':
@@ -290,7 +309,6 @@ def instructor_grades():
                         os.remove(path_csv)
                 ### Upload funtion end
             elif request.form['submit_button'] == 'View Week':
-                print('hola')
                 for grades in users_grades:
                     student_id.append(grades['studentID'])
                     academic_grade.append(grades['academic'])

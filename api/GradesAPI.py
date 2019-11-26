@@ -8,7 +8,7 @@ import random
 
 class GradesAPI(object):
 #USERS
-    def get_name_student(sel,mail):
+    def get_name_student(self,mail):
         mongodb = Grades.Grades()
         grades = mongodb.findStudentName(mail)
         return grades
@@ -28,7 +28,12 @@ class GradesAPI(object):
         mongodb = Grades.Grades()
         total_weeks = mongodb.findTotalWeeks()
         return total_weeks
-    
+
+    def get_total_weeks_class(self, class_name):
+        mongodb = Grades.Grades()
+        total_weeks = mongodb.findTotalWeeksClass(class_name)
+        return total_weeks
+
     def insert_grades(self, document):
         mongodb = Grades.Grades()
         inserted_grades = mongodb.insertGrades(document)
