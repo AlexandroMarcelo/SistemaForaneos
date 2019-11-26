@@ -222,52 +222,70 @@ def instructor_grades():
                     # basic header and record length checks
                     validator.add_header_check('EX1', 'bad header')
                     problems = validator.validate(reader)
-                    
-                    '''
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        pass  # it was a string, not an int.
-                    '''
 
                     if bool(problems):
                         if problems[0]['code'] == 'EX1':
                             flash('ERROR: Document is invalid, please check the header, you should have studentId,academic,teamWork,communication, in that format')
                     else:
                         flash('File successfully uploaded')
-                        for each in reader2:
+                        for each in reader2:#iteration to read every row of the document
                             row={}
                             row['class'] = session['class']
                             row['week'] = total_weeks + 1
+                            #count for error control
+                            cont = 0
+
                             for field in header:
                                     row[field]=each[field]
                             
-                            try:
+                            try:#catching error in case the format of the document is wrong
                                 academic = int(row['academic'])
                                 teamWork = int(row['teamWork'])
                                 communication = int(row['communication'])
                                
-                                if (academic in range(100)) and (teamWork in range(100)) and (communication in range(100)):#stll has errors
-                                    print(row)
+                                if academic in range(100):
+                                    cont+=1
+                            
+                                else:
+                                    flash('Error found in an academic field, please check the document and try again')
+
+                                if teamWork in range(100):
+                                    cont+=1
+        
+                                else:
+                                    flash('Error found in an team work field, please check the document and try again') 
+
+                                if communication in range(100):
+                                    cont+=1
+                                    
+                                else:
+                                    print('Error, communication is wrong')
+                                    flash('Error found in an communication field, please check the document and try again')
+
+                                if cont == 3:
                                     insert_grades = apiGrades.insert_grades(row)
                                     if insert_grades is False:
                                         flash("Error in the DB, please check the selected file and upload it agin.")
                                     else:
                                         flash("Grades inserted correctly")
-                                else:
-                                    print('Error')                                
+
+                                elif cont != 3:
+                                    flash('File had an error and could not be uploaded, try again!')
 
                             except ValueError:
                                 pass                             
-                                flash("Error in the file, please check that every field has a number between 0 and 100.")
+                                flash("Error in the file, please check that every field has a number between 0 and 100 and the ID is valid.")
 
                     os.remove(path_csv)
+                    
                 else:
                     if file.filename == '':
                         flash('Allowed file types are csv')
                     if path_csv is not '':
                         os.remove(path_csv)
                 ### Upload funtion end
+
+
             elif request.form['submit_button'] == 'Update Grade':
                 print('updating')
                 ### Update funtion begin

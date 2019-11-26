@@ -43,8 +43,10 @@
           
             <input class={input_button} type="submit" name="submit_button" value="Update Grade">
   
+        </div >
+        <div class={text}>
+          <p>Select the week of your preference, to search for grades/update the grades</p>  
         </div>
-          <p class={text}>Select the week of your preference, to search for grades/update the grades</p>  
           <div>
               <select name=current_week method='GET' action='/'>
                   {% for week in weeks %}
@@ -109,7 +111,7 @@
 <style>
   
   select {
-      margin: 30px 10px;
+      margin: 10px 10px;
       width: 300px;
       text-align: center;
   }
@@ -122,9 +124,10 @@
   }
   .input_button {
     float: right;
+    margin-top: 100px !important;
   }
-  .text{
-    margin: 100px, 0px;
+  input, p{
+    margin: 10px 0;
   }
 </style>
 </html>
