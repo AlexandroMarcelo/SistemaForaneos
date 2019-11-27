@@ -12,3 +12,4 @@ dnspython
 datetime
 pandas
 csvvalidator
+requests
