@@ -3,21 +3,44 @@ from flask_api import FlaskAPI, status, exceptions
 from api.DBmodels import Grades, Accounts
 from datetime import datetime
 from bson import ObjectId
-import json
-import random
+
+from flask import Flask, jsonify,request,make_response,url_for,redirect
+from json import dumps
+import requests
+
+api_url = 'http://apistudentexchange.azurewebsites.net/'
+
 
 class GradesAPI(object):
 #AUTH
     def get_password_user(self, email):
-        redis = Accounts.Sessions()
-        password = redis.getUserPassword(email)
-        return password
-
+        service = 'get_user_password/'
+        student = email
+        data = str(api_url+service+student)
+        r = requests.get(data)
+        #print(r.text)
+        #print(r.status_code, r.reason, r.text)
+        return r.text
+        """
+        mongodb = Accounts.Sessions()
+        grades = mongodb.getUserPassword(email)
+        return grades"""
+        
 #USERS
     def get_name_student(self,mail):
+        service = 'student_name/'
+        student = mail
+        data = str(api_url+service+student)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         grades = mongodb.findStudentName(mail)
         return grades
+        """
 
 #USERS GRADES
     def get_grades(self):
@@ -26,43 +49,109 @@ class GradesAPI(object):
         return grades
     
     def get_user_grades(self, mail, current_week):
+        service = 'get_user_grades/'
+        student = mail
+        current_week = current_week
+        current_week_api = str(current_week)
+        current_week_api = '/'+current_week_api
+        data = str(api_url+service+student+current_week_api)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         user_grades = mongodb.findUserGrades(mail, current_week)
         return user_grades
-
+        """
     def get_total_weeks(self):
+        service = 'get_total_weeks'
+        data = str(api_url+service)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         total_weeks = mongodb.findTotalWeeks()
         return total_weeks
+        """
 
     def get_total_weeks_class(self, class_name):
+        service = 'get_total_weeks_class'
+        data = str(api_url+service+"/"+class_name)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         total_weeks = mongodb.findTotalWeeksClass(class_name)
         return total_weeks
+        """
 
     def insert_grades(self, document):
-        mongodb = Grades.Grades()
+        service = 'insert_grades'
+        #data_json = {'class': 'Programming','week':1, 'studentID':'A01021383@itesm.mx','academic':'10','teamWork':'80', 'communication':'90'}
+        api_url_test =  str(api_url+service)
+        r = requests.post(url=api_url_test, json=document)
+        #print(r.status_code, r.reason, r.text)
+        return r.text
+        """mongodb = Grades.Grades()
         inserted_grades = mongodb.insertGrades(document)
-        return inserted_grades
+        return inserted_grades"""
 
     def update_grades(self, document):
-        mongodb = Grades.Grades()
+        service = 'update_grades'
+        api_url_test =  str(api_url+service)
+        r = requests.post(url=api_url_test, json=document)
+        return r.text
+        """mongodb = Grades.Grades()
         updated_grades = mongodb.updateGrades(document)
-        return updated_grades
+        return updated_grades"""
 
 #TEACHERS
     def get_teacher_name(self, mail):
-        mongodb = Grades.Grades()
-        teacher_name = mongodb.findTeacherName(mail)
-        return teacher_name
+        service = 'teacher_name/'
+        teacher = mail
+        data = str(api_url+service+teacher)
+        r = requests.get(data)
+        #print(r.json)
+        #print(r.status_code, r.reason, r.text)
+        return r.text
 
     def get_students_grades(self, current_class, week):
+        service = 'get_students_grades/'
+        class_name = current_class
+        current_week = week
+        current_week_api = str(current_week)
+        current_week_api = '/'+current_week_api
+        data = str(api_url+service+class_name+current_week_api)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         teacher_name = mongodb.findStudentsGrades(current_class, week)
         return teacher_name
+        """
 
     def get_classes_teacher(self, mail):
+        service = 'get_classes_teacher/'
+        data = str(api_url+service+mail)
+        r = requests.get(data)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "Bad parameters"
+        """
         mongodb = Grades.Grades()
         teacher_name = mongodb.findClassesTeacher(mail)
         return teacher_name
+        """
     
