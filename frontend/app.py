@@ -62,13 +62,25 @@ def login():
         correo_usuario = email
         #Comparar contrasenias
         password = sha256_crypt.encrypt(str(input_password))
-        password_redis = apiGrades.get_password_user(email)
-
+        password_redis_api = apiGrades.get_password_user(email)
+        if password_redis_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
+        print(password_redis_api)
+        password_redis_a = json.loads(password_redis_api)
+        password_redis = password_redis_a['password']
+        #print(password_redis)
+       
         if domain == 'tec.mx': #for teachers
-            if password_redis is not False: #Not found
+            if password_redis != "False": #Not found
                 if sha256_crypt.verify(input_password, password_redis):
                 #if True:
                     teacher = apiGrades.get_teacher_name(email)
+                    if teacher == "API ERROR":
+                        error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+                        logout_error()
+                        return render_template('login.html', error=error)
                     teacher_name = json.loads(teacher)
                     session['instructor'] = True
                     session['nombre'] = teacher_name['name']
@@ -76,20 +88,24 @@ def login():
                     logged_in_instructor = True
                     return redirect(url_for('home'))
                 else:
-                    error = 'Usuario no encontrado'
+                    error = 'User not found'
                     return render_template('login.html', error=error)
             else: 
-                error = 'Correo no encontrado'
+                error = 'User not found'
                 return render_template('login.html', error=error)
         #Users
         else:
             global nombre_usuario
             user_name_api = apiGrades.get_name_student(email)
+            if user_name_api == "API ERROR":
+                error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+                logout_error()
+                return render_template('login.html', error=error)
             user_name = json.loads(user_name_api)
             nombre_usuario = user_name['name']
             #print(correo_usuario)
-            if password_redis == False: #Not found
-                error = 'Correo no encontrado'
+            if password_redis == "False": #Not found
+                error = 'User not found'
                 return render_template('login.html', error=error)
             else: 
                 if sha256_crypt.verify(input_password, password_redis):
@@ -103,7 +119,7 @@ def login():
                     return redirect(url_for('home'))
                 
                 else:
-                    error = 'Usuario no encontrado'
+                    error = 'User not found'
                     app.logger.info('NO VALIDO')
                     return render_template('login.html', error=error)
                 
@@ -125,6 +141,17 @@ def logout():
     logged_in_instructor = False
     return redirect(url_for('login'))
 
+def logout_error():
+    session.clear()
+    global nombre_usuario
+    nombre_usuario = ""
+    global correo_usuario
+    correo_usuario = ""
+    global logged_in_user
+    logged_in_user = False
+    global logged_in_instructor
+    logged_in_instructor = False
+
 #Where the student can view their grades of each class
 @app.route('/user_grades', methods=['GET', 'POST'])
 def user_grades():
@@ -135,8 +162,16 @@ def user_grades():
             current_week = 0
         current_week = int(str(current_week))
         user_grades_api = apiGrades.get_user_grades(correo_usuario, current_week)
+        if user_grades_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
         user_grades = json.loads(user_grades_api)
         total_weeks_api = apiGrades.get_total_weeks()
+        if total_weeks_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
         total_weeks_a = json.loads(total_weeks_api)
         total_weeks = total_weeks_a['total_weeks']
         weeks = []
@@ -180,9 +215,17 @@ def instructor_grades():
             session['class'] = request.args.get('selected_class', None)
         
         users_grades_api = apiGrades.get_students_grades(selected_class, current_week)
+        if users_grades_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
         users_grades = json.loads(users_grades_api)
 
         total_weeks_api = apiGrades.get_total_weeks_class(session['class'])
+        if total_weeks_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
         total_weeks_a = json.loads(total_weeks_api)
         total_weeks = total_weeks_a['total_weeks_class']
         weeks = []
@@ -263,8 +306,12 @@ def instructor_grades():
 
                                 if cont == 3: #all correctly
                                     insert_grades_api = apiGrades.insert_grades(row)
+                                    if insert_grades_api == "API ERROR":
+                                        error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+                                        logout_error()
+                                        return render_template('login.html', error=error)
                                     update_grades = int(insert_grades_api)
-                                    print(update_grades)
+                                    #print(update_grades)
                                     if update_grades == -1:
                                         updated_error_db+=1
                                         updated_correctly = False
@@ -283,7 +330,7 @@ def instructor_grades():
 
                             except ValueError:
                                 pass   
-                        print(updated_student_no_exist)      
+                        #print(updated_student_no_exist)      
                         if updated_correctly:
                             flash("Everything was uploaded correctly. Grades submitted")
                         if updated_error_db >= 1:
@@ -308,7 +355,7 @@ def instructor_grades():
 
 
             elif request.form['submit_button'] == 'Update Grade':
-                print('updating')
+                #print('updating')
                 ### Update funtion begin
                 # check if the post request has the file part
                 if 'file' not in request.files:
@@ -363,8 +410,12 @@ def instructor_grades():
                                     
                                 if cont == 3: #all correctly
                                     update_grades_api = apiGrades.update_grades(row)
+                                    if update_grades_api == "API ERROR":
+                                        error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+                                        logout_error()
+                                        return render_template('login.html', error=error)
                                     update_grades = int(update_grades_api)
-                                    print(update_grades_api)
+                                    #print(update_grades_api)
                                     if update_grades == -1:
                                         updated_error_db+=1
                                         updated_correctly = False
@@ -380,7 +431,7 @@ def instructor_grades():
 
                             except ValueError:
                                 pass         
-                        print(updated_student_no_exist)
+                        #print(updated_student_no_exist)
                         if updated_correctly:
                             flash("Everything was uploaded correctly. Grades updated")
                         if updated_error_db >= 1:
@@ -416,6 +467,10 @@ def instructor_grades():
 def classes():
     if logged_in_instructor:
         classes_api = apiGrades.get_classes_teacher(correo_usuario)
+        if classes_api == "API ERROR":
+            error = 'SORRY!, OUR SERVERS ARE OUT OF SERVICE. PLEASE CONTACT US TO GIVE YOU A SOLUTION.'
+            logout_error()
+            return render_template('login.html', error=error)
         classes = json.loads(classes_api)
         classes_list = []
         for classs in classes:

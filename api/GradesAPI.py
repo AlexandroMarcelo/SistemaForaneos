@@ -9,7 +9,7 @@ from json import dumps
 import requests
 
 api_url = 'http://apistudentexchange.azurewebsites.net/'
-
+#api_url = 'http://localhost:5050/'
 
 class GradesAPI(object):
 #AUTH
@@ -17,10 +17,15 @@ class GradesAPI(object):
         service = 'get_user_password/'
         student = email
         data = str(api_url+service+student)
-        r = requests.get(data)
-        #print(r.text)
-        #print(r.status_code, r.reason, r.text)
-        return r.text
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
+        print(r.status_code, r.reason, r.text)
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "API ERROR"
         """
         mongodb = Accounts.Sessions()
         grades = mongodb.getUserPassword(email)
@@ -31,11 +36,14 @@ class GradesAPI(object):
         service = 'student_name/'
         student = mail
         data = str(api_url+service+student)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         grades = mongodb.findStudentName(mail)
@@ -55,11 +63,14 @@ class GradesAPI(object):
         current_week_api = str(current_week)
         current_week_api = '/'+current_week_api
         data = str(api_url+service+student+current_week_api)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         user_grades = mongodb.findUserGrades(mail, current_week)
@@ -68,11 +79,14 @@ class GradesAPI(object):
     def get_total_weeks(self):
         service = 'get_total_weeks'
         data = str(api_url+service)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         total_weeks = mongodb.findTotalWeeks()
@@ -82,11 +96,14 @@ class GradesAPI(object):
     def get_total_weeks_class(self, class_name):
         service = 'get_total_weeks_class'
         data = str(api_url+service+"/"+class_name)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         total_weeks = mongodb.findTotalWeeksClass(class_name)
@@ -97,9 +114,16 @@ class GradesAPI(object):
         service = 'insert_grades'
         #data_json = {'class': 'Programming','week':1, 'studentID':'A01021383@itesm.mx','academic':'10','teamWork':'80', 'communication':'90'}
         api_url_test =  str(api_url+service)
-        r = requests.post(url=api_url_test, json=document)
+        try:
+            r = requests.post(url=api_url_test, json=document)
+        except:
+            return "API ERROR"
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "API ERROR"
         #print(r.status_code, r.reason, r.text)
-        return r.text
+        #return r.text
         """mongodb = Grades.Grades()
         inserted_grades = mongodb.insertGrades(document)
         return inserted_grades"""
@@ -107,8 +131,14 @@ class GradesAPI(object):
     def update_grades(self, document):
         service = 'update_grades'
         api_url_test =  str(api_url+service)
-        r = requests.post(url=api_url_test, json=document)
-        return r.text
+        try:
+            r = requests.post(url=api_url_test, json=document)
+        except:
+            return "API ERROR"
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "API ERROR"
         """mongodb = Grades.Grades()
         updated_grades = mongodb.updateGrades(document)
         return updated_grades"""
@@ -118,10 +148,17 @@ class GradesAPI(object):
         service = 'teacher_name/'
         teacher = mail
         data = str(api_url+service+teacher)
-        r = requests.get(data)
+        
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         #print(r.json)
         #print(r.status_code, r.reason, r.text)
-        return r.text
+        if r.status_code >= 200 and r.status_code < 400:
+            return r.text
+        else:
+            return "API ERROR"
 
     def get_students_grades(self, current_class, week):
         service = 'get_students_grades/'
@@ -130,11 +167,14 @@ class GradesAPI(object):
         current_week_api = str(current_week)
         current_week_api = '/'+current_week_api
         data = str(api_url+service+class_name+current_week_api)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         teacher_name = mongodb.findStudentsGrades(current_class, week)
@@ -144,11 +184,14 @@ class GradesAPI(object):
     def get_classes_teacher(self, mail):
         service = 'get_classes_teacher/'
         data = str(api_url+service+mail)
-        r = requests.get(data)
+        try:
+            r = requests.get(data)
+        except:
+            return "API ERROR"
         if r.status_code >= 200 and r.status_code < 400:
             return r.text
         else:
-            return "Bad parameters"
+            return "API ERROR"
         """
         mongodb = Grades.Grades()
         teacher_name = mongodb.findClassesTeacher(mail)
