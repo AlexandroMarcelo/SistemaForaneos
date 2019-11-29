@@ -280,6 +280,7 @@ def instructor_grades():
                         flash('File successfully uploaded')
                         aux = 0
                         error_flag = 0
+                        error_flag_file = False
                         for each in reader2:#iteration to read every row of the document
                             row={}
                             row['class'] = session['class']
@@ -292,11 +293,14 @@ def instructor_grades():
                         
                             try:#catching error in case the format of the document is wrong
                                 aux += 1
-                                
-                                academic = int(row['academic'])
-                                teamWork = int(row['teamWork'])
-                                communication = int(row['communication'])
-                               
+                                try:
+                                    academic = int(row['academic'])
+                                    teamWork = int(row['teamWork'])
+                                    communication = int(row['communication'])
+                                except:
+                                    updated_correctly = False
+                                    error_flag_file = True
+                                    break
                                 if academic in range(101):
                                     cont+=1
                                 if teamWork in range(101):
@@ -343,7 +347,8 @@ def instructor_grades():
                             flash(str(updated_student_already_in) + " students not inserted, because duplicated grades")
                         if error_flag >= 1:
                             flash(str(error_flag) + " students failed to insert.  Please check that every field has a number between 0 and 100 and the ID is valid.")
-            
+                        if error_flag_file:
+                            flash("Students failed to insert.  Please check that every field has a number between 0 and 100 and the ID is valid, and has 3 grades in the file.")
                     os.remove(path_csv)
                     
                 else:
@@ -385,6 +390,7 @@ def instructor_grades():
                         flash('File successfully uploaded')
                         aux = 0 
                         error_flag = 0
+                        arror_flag_file = False
                         for each in reader2:
                             row={}
                             row['class'] = session['class']
@@ -397,9 +403,14 @@ def instructor_grades():
                             try:#catching error in case the format of the document is wrong
                                 aux += 1
                                 
-                                academic = int(row['academic'])
-                                teamWork = int(row['teamWork'])
-                                communication = int(row['communication'])
+                                try:
+                                    academic = int(row['academic'])
+                                    teamWork = int(row['teamWork'])
+                                    communication = int(row['communication'])
+                                except:
+                                    updated_correctly = False
+                                    error_flag_file = True
+                                    break
                                
                                 if academic in range(101):
                                     cont+=1
@@ -442,7 +453,8 @@ def instructor_grades():
                             flash(str(updated_student_no_exist) + " the student do not exist")
                         if error_flag >= 1:
                             flash(str(error_flag) + " students failed to update.  Please check that every field has a number between 0 and 100 and the ID is valid.")
-
+                        if error_flag_file:
+                            flash("Students failed to insert.  Please check that every field has a number between 0 and 100 and the ID is valid, and has 3 grades in the file.")
                     os.remove(path_csv)
                 else:
                     if file.filename == '':
