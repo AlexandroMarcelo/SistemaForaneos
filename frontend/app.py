@@ -390,7 +390,7 @@ def instructor_grades():
                         flash('File successfully uploaded')
                         aux = 0 
                         error_flag = 0
-                        arror_flag_file = False
+                        error_flag_file = False
                         for each in reader2:
                             row={}
                             row['class'] = session['class']
